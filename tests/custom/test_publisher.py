@@ -54,7 +54,6 @@ def test_publishes_zh_with_slug(monkeypatch):
 
 
 def test_skips_non_target_language(monkeypatch):
-    called = {"n": 0}
     monkeypatch.setattr(
         httpx,
         "AsyncClient",

@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import TYPE_CHECKING, Dict, List
 
 import httpx
@@ -112,10 +112,12 @@ def insert_illustrations(summary_markdown: str, anchor_to_url: Dict[str, str]) -
 async def illustrate_items(
     orchestrator: "HorizonOrchestrator",
     important_items: List["ContentItem"],
+    today: str,
 ) -> Dict[str, str]:
     """为 top-N 精选报道生图，返回 ``{anchor_id: 公网图片URL}``（语言无关）。
 
     在 lang 循环前调用一次，映射被循环内所有语言的 summary 共享。
+    ``today`` 由 orchestrator 统一传入（与 summary/落盘路径同一日期），避免跨午夜边界不一致。
     外层 + per-item 双层静默降级：任何失败只影响个别配图，绝不中断主流程。
     """
     result: Dict[str, str] = {}
@@ -128,7 +130,6 @@ async def illustrate_items(
 
         anchor_map = illustrator.compute_anchor_map(orchestrator, important_items)
         targets = illustrator.select_targets(important_items, cfg.illustrate_top_n)
-        today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
         for item in targets:
             anchor = anchor_map.get(id(item))

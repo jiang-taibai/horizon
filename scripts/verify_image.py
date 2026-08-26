@@ -47,7 +47,7 @@ async def main() -> int:
     import os
 
     key = os.getenv(cfg.image_api_key_env, "")
-    print(f"api_key    : {'已设置 (' + key[:6] + '...)' if key else '❌ 未设置！请检查 .env'}")
+    print(f"api_key    : {'✅ 已设置' if key else '❌ 未设置！请检查 .env'}")
     print(f"prompt     : {prompt}")
     print("-" * 40)
 

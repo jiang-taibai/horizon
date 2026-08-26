@@ -86,6 +86,13 @@ def test_dashscope_extracts_message_content_url():
     assert DashScopeImageProvider._extract_url(output) == "https://oss.test/x.png"
 
 
+def test_dashscope_normalizes_openai_size():
+    """OpenAI 风格 1024x1024 会被归一化为 DashScope 的 1024*1024。"""
+    assert DashScopeImageProvider._normalize_size("1024x1024") == "1024*1024"
+    assert DashScopeImageProvider._normalize_size("1280X720") == "1280*720"
+    assert DashScopeImageProvider._normalize_size("1024*1024") == "1024*1024"  # 已正确则不变
+
+
 def test_dashscope_400_includes_response_body(monkeypatch):
     """400 报错要带上响应体，便于定位真正原因。"""
     def handler(request: httpx.Request) -> httpx.Response:

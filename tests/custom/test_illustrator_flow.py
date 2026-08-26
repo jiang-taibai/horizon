@@ -76,14 +76,14 @@ def test_illustrate_items_happy_path(tmp_path, monkeypatch):
 
     monkeypatch.setattr(illustrator, "_call_image_api", fake_image_api)
 
-    result = asyncio.run(hooks.illustrate_items(orch, items))
+    today = "2026-04-25"
+    result = asyncio.run(hooks.illustrate_items(orch, items, today))
 
     # 只给 top-2 配图
     assert len(result) == 2
     # URL 用了 public_base_url
     assert all(u.startswith("https://cdn.test/images/") for u in result.values())
-    # 图片确实落盘
-    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    # 图片落盘在传入的 today 目录下
     day_dir = tmp_path / "images" / today
     assert day_dir.exists()
     assert len(list(day_dir.glob("*.png"))) == 2
@@ -95,7 +95,7 @@ def test_disabled_returns_empty(tmp_path, monkeypatch):
     items = [_make_item(1)]
     cfg = IllustratorConfig(enabled=False, output_dir=str(tmp_path / "images"))
     orch = _orch(items, cfg)
-    result = asyncio.run(hooks.illustrate_items(orch, items))
+    result = asyncio.run(hooks.illustrate_items(orch, items, "2026-04-25"))
     assert result == {}
 
 
@@ -125,7 +125,7 @@ def test_per_item_failure_degrades(tmp_path, monkeypatch):
 
     monkeypatch.setattr(illustrator, "_call_image_api", flaky_image_api)
 
-    result = asyncio.run(hooks.illustrate_items(orch, items))
+    result = asyncio.run(hooks.illustrate_items(orch, items, "2026-04-25"))
     # 第一条失败，第二条成功
     assert len(result) == 1
 

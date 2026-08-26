@@ -295,12 +295,13 @@ class HorizonOrchestrator:
             # 6. Search related stories + enrich with background knowledge (2nd AI pass)
             await self.enrich_items(important_items)
 
-            # >>> HORIZON-CUSTOM(illustrations): 为 top-N 报道生图（语言无关，循环前一次）—— 二开代码，同步上游时勿删
-            custom_illustrations = await custom_hooks.illustrate_items(self, important_items)
-            # <<< HORIZON-CUSTOM
-
             # 7. Generate and save daily summaries for each configured language
             today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+            # >>> HORIZON-CUSTOM(illustrations): 为 top-N 报道生图（语言无关，循环前一次）—— 二开代码，同步上游时勿删
+            custom_illustrations = await custom_hooks.illustrate_items(self, important_items, today)
+            # <<< HORIZON-CUSTOM
+
             for lang in self.config.ai.languages:
                 summarizer = DailySummarizer(
                     profile_names=self.profiles.names,

@@ -100,6 +100,11 @@ class DashScopeImageProvider(ImageProvider):
             "Content-Type": "application/json",
         }
 
+    @staticmethod
+    def _normalize_size(size: str) -> str:
+        """DashScope 用 ``宽*高`` 格式；兼容 OpenAI 风格的 ``1024x1024`` 写法。"""
+        return size.replace("x", "*").replace("X", "*")
+
     async def generate(self, prompt: str) -> bytes:
         body = {
             "model": self.cfg.image_model,
@@ -108,7 +113,11 @@ class DashScopeImageProvider(ImageProvider):
                     {"role": "user", "content": [{"text": prompt}]}
                 ]
             },
-            "parameters": {"size": self.cfg.image_size, "n": 1, "watermark": False},
+            "parameters": {
+                "size": self._normalize_size(self.cfg.image_size),
+                "n": 1,
+                "watermark": False,
+            },
         }
         async with httpx.AsyncClient(timeout=self.cfg.timeout_sec) as http:
             resp = await http.post(

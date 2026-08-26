@@ -53,7 +53,7 @@ def test_append_fetch_tasks_no_config_is_noop(monkeypatch):
 def test_illustrate_items_disabled_returns_empty(monkeypatch):
     monkeypatch.setattr(hooks, "load_custom_config", lambda path="data/custom.json": CustomConfig())
     orch = _orch_without_custom_config()
-    result = asyncio.run(hooks.illustrate_items(orch, []))
+    result = asyncio.run(hooks.illustrate_items(orch, [], "2026-04-25"))
     assert result == {}
 
 

@@ -33,6 +33,10 @@ from .ai.enricher import ContentEnricher, EnrichmentBatchResult
 from .ai.tokens import get_usage_snapshot
 from .processing import ProfileRegistry
 
+# >>> HORIZON-CUSTOM(imports): 二开逻辑本体入口 —— 二开代码，同步上游时勿删
+from .custom import hooks as custom_hooks
+# <<< HORIZON-CUSTOM
+
 
 _TRACKING_QUERY_PARAMETERS = {
     "_ga",
@@ -291,6 +295,10 @@ class HorizonOrchestrator:
             # 6. Search related stories + enrich with background knowledge (2nd AI pass)
             await self.enrich_items(important_items)
 
+            # >>> HORIZON-CUSTOM(illustrations): 为 top-N 报道生图（语言无关，循环前一次）—— 二开代码，同步上游时勿删
+            custom_illustrations = await custom_hooks.illustrate_items(self, important_items)
+            # <<< HORIZON-CUSTOM
+
             # 7. Generate and save daily summaries for each configured language
             today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
             for lang in self.config.ai.languages:
@@ -299,6 +307,10 @@ class HorizonOrchestrator:
                     profile_order=self.config.digest.profile_order,
                 )
                 summary = await summarizer.generate_summary(important_items, today, len(all_items), language=lang)
+
+                # >>> HORIZON-CUSTOM(illustrations): 把图片插入 summary 字符串 —— 二开代码，同步上游时勿删
+                summary = custom_hooks.insert_illustrations(summary, custom_illustrations)
+                # <<< HORIZON-CUSTOM
 
                 # Save to data/summaries/
                 summary_path = self.storage.save_daily_summary(today, summary, language=lang)
@@ -366,6 +378,10 @@ class HorizonOrchestrator:
                         lang=lang,
                         summarizer=summarizer,
                     )
+
+                # >>> HORIZON-CUSTOM(publish): 仅 zh 版上传自研博客（幂等 slug=日期）—— 二开代码，同步上游时勿删
+                await custom_hooks.publish_summary(self, today, lang, summary)
+                # <<< HORIZON-CUSTOM
 
             self.console.print(
                 f"[bold green]{self.icons['success']} "
@@ -481,6 +497,10 @@ class HorizonOrchestrator:
             if self.config.sources.google_news and self.config.sources.google_news.enabled:
                 gn_scraper = GoogleNewsScraper(self.config.sources.google_news, client)
                 tasks.append(self._fetch_with_progress("Google News", gn_scraper, since))
+
+            # >>> HORIZON-CUSTOM(custom-sources): 追加自定义源抓取任务 —— 二开代码，同步上游时勿删
+            custom_hooks.append_custom_fetch_tasks(self, tasks, client, since)
+            # <<< HORIZON-CUSTOM
 
             # Fetch all concurrently
             outcomes = await asyncio.gather(*tasks)

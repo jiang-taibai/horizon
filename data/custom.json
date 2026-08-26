@@ -1,0 +1,40 @@
+{
+  "sources": [
+    {
+      "name": "示例 JSON 源",
+      "type": "example_json",
+      "enabled": false,
+      "category": "tech",
+      "profile": null,
+      "options": {
+        "url": "https://api.example.com/items",
+        "title_field": "title",
+        "url_field": "link",
+        "id_field": "id",
+        "time_field": "published_at"
+      }
+    }
+  ],
+  "illustrator": {
+    "enabled": true,
+    "illustrate_top_n": 1,
+    "image_provider": "dashscope",
+    "image_base_url": "https://dashscope.aliyuncs.com/api/v1",
+    "image_model": "qwen-image-3.0-pro",
+    "image_api_key_env": "DASHSCOPE_API_KEY",
+    "image_size": "1024*1024",
+    "prompt_language": "zh",
+    "output_dir": "data/images",
+    "image_retention_days": 30,
+    "public_base_url": "",
+    "timeout_sec": 90.0
+  },
+  "publisher": {
+    "enabled": false,
+    "api_url": "${HORIZON_BLOG_API_URL}",
+    "token_env": "HORIZON_BLOG_TOKEN",
+    "languages": ["zh"],
+    "slug_prefix": "",
+    "timeout_sec": 30.0
+  }
+}

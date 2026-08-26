@@ -1,4 +1,4 @@
-"""图像 provider 抽象层测试（OpenAI 兼容 + DashScope 异步轮询）。"""
+"""图像 provider 抽象层测试（OpenAI 兼容 + DashScope 同步调用）。"""
 
 from __future__ import annotations
 
@@ -99,6 +99,7 @@ def test_dashscope_400_includes_response_body(monkeypatch):
         return httpx.Response(400, json={"code": "InvalidParameter", "message": "bad size"})
 
     _patch_client(monkeypatch, httpx.MockTransport(handler))
+    monkeypatch.setenv("HORIZON_IMAGE_API_KEY", "sk-test")
     cfg = IllustratorConfig(image_provider="dashscope")
     provider = DashScopeImageProvider(cfg)
     with pytest.raises(ValueError, match="bad size"):
@@ -121,7 +122,17 @@ def test_openai_provider_b64(monkeypatch):
             self.images = FakeImages()
 
     monkeypatch.setattr("openai.AsyncOpenAI", FakeClient)
+    monkeypatch.setenv("HORIZON_IMAGE_API_KEY", "sk-test")
     cfg = IllustratorConfig(image_provider="openai", image_model="dall-e-3")
     provider = OpenAIImageProvider(cfg)
     data = asyncio.run(provider.generate("a cat"))
     assert data == raw
+
+
+def test_missing_api_key_raises(monkeypatch):
+    """缺 key 时早抛带 env 名的 ValueError，而非发一次注定失败的请求。"""
+    monkeypatch.delenv("HORIZON_IMAGE_API_KEY", raising=False)
+    for provider_key in ("openai", "dashscope"):
+        provider = build_image_provider(IllustratorConfig(image_provider=provider_key))
+        with pytest.raises(ValueError, match="HORIZON_IMAGE_API_KEY"):
+            asyncio.run(provider.generate("x"))

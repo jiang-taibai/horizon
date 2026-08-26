@@ -91,11 +91,21 @@ def test_missing_url_returns_empty():
 
 def test_registry_known_type():
     cfg = CustomSourceConfig(name="s", type="example_json", options={})
-    scraper = build_scraper(cfg, http_client=None)  # 构造不触网
+
+    async def _run():
+        async with httpx.AsyncClient() as client:
+            return build_scraper(cfg, client)
+
+    scraper = asyncio.run(_run())
     assert isinstance(scraper, ExampleJSONScraper)
     assert isinstance(scraper, CustomScraper)
 
 
 def test_registry_unknown_type_returns_none():
     cfg = CustomSourceConfig(name="s", type="does_not_exist", options={})
-    assert build_scraper(cfg, http_client=None) is None
+
+    async def _run():
+        async with httpx.AsyncClient() as client:
+            return build_scraper(cfg, client)
+
+    assert asyncio.run(_run()) is None

@@ -1,8 +1,8 @@
 """图像生成 provider 抽象层。
 
 不同图像服务的协议差异很大（OpenAI 的 ``/v1/images/generations`` vs 阿里云百炼的
-异步任务 + 轮询）。本模块把"给 prompt、拿图片二进制"抽象成统一接口 :class:`ImageProvider`，
-``IllustratorConfig.image_provider`` 字段决定用哪个实现。
+``multimodal-generation/generation`` 同步调用）。本模块把"给 prompt、拿图片二进制"
+抽象成统一接口 :class:`ImageProvider`，``IllustratorConfig.image_provider`` 字段决定用哪个实现。
 
 新增一个图像服务，只需：
 1. 写一个继承 ``ImageProvider`` 的类，实现 ``async generate(prompt) -> bytes``；
@@ -30,8 +30,17 @@ class ImageProvider(ABC):
     def __init__(self, cfg: IllustratorConfig):
         self.cfg = cfg
 
-    def _api_key(self) -> str:
-        return os.getenv(self.cfg.image_api_key_env, "")
+    def _require_api_key(self) -> str:
+        """取 API key；缺失则抛带 env 名的 ValueError（上层做 per-item 静默降级）。
+
+        缺 key 时早失败、给清晰错误，而不是用占位 key 发一次注定失败的外部请求。
+        """
+        key = os.getenv(self.cfg.image_api_key_env, "")
+        if not key:
+            raise ValueError(
+                f"图像 API key 未设置：请配置环境变量 {self.cfg.image_api_key_env}"
+            )
+        return key
 
     @abstractmethod
     async def generate(self, prompt: str) -> bytes:
@@ -57,7 +66,7 @@ class OpenAIImageProvider(ImageProvider):
 
         client = AsyncOpenAI(
             base_url=self.cfg.image_base_url or None,
-            api_key=self._api_key() or "no_key",
+            api_key=self._require_api_key(),
         )
         resp = await client.images.generate(
             model=self.cfg.image_model,
@@ -96,7 +105,7 @@ class DashScopeImageProvider(ImageProvider):
 
     def _headers(self) -> Dict[str, str]:
         return {
-            "Authorization": f"Bearer {self._api_key()}",
+            "Authorization": f"Bearer {self._require_api_key()}",
             "Content-Type": "application/json",
         }
 

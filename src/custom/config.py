@@ -50,7 +50,7 @@ class IllustratorConfig(BaseModel):
     # 文本 LLM 复用上游 ai provider（生成绘画提示词），无需在此单独配置。
     # 图像 provider：决定用哪种图像 API 协议。新增协议只需在 illustrator 里加实现类。
     #   - "openai"    : OpenAI 兼容 /v1/images/generations（DALL·E、多数中转站）
-    #   - "dashscope" : 阿里云百炼文生图（异步提交 + 轮询，qwen-image / wan 系列）
+    #   - "dashscope" : 阿里云百炼文生图（multimodal-generation 同步调用，qwen-image-3.0 系列）
     image_provider: str = "openai"
     image_base_url: str = ""  # 图像 API 根地址（openai: /v1 结尾；dashscope: https://dashscope.aliyuncs.com/api/v1）
     image_model: str = "dall-e-3"

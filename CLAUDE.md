@@ -114,7 +114,7 @@ custom_hook_call(...)          # 只留一行薄 hook，逻辑本体在 src/cust
 
 各二开功能（自定义源、文章配图、文章上传、LLM Endpoint 配置）的落点、数据流、hook 位置等**实现细节**，见：
 
-> 📄 [`docs/二开实现细节.md`](docs/二开实现细节.md)
+> 📄 [`docs/二开/实现细节.md`](docs/二开/实现细节.md)　·　[`docs/二开/开发进度.md`](docs/二开/开发进度.md)　·　[`docs/二开/最终报告.md`](docs/二开/最终报告.md)
 
 CLAUDE.md 只承载跨任务恒定的纪律；实现细节按需查阅 docs，避免每次会话都加载大量与当前任务无关的内容。
 

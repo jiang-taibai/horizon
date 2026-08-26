@@ -38,6 +38,7 @@ ENV/
 
 # Data files (keep structure, ignore content)
 data/config.json
+data/config.backup.json
 data/seen.json
 data/summaries/*.md
 data/subscribers.json
@@ -45,6 +46,9 @@ data/mcp.secrets.json
 data/mcp-secrets.json
 data/mcp-runs/
 data/x_cookies_*.json
+
+# HORIZON-CUSTOM: 配图运行产物（本地落盘的图片）
+data/images/
 
 docs/_posts/*.md
 
